@@ -1,0 +1,19 @@
+{
+  "name": "智学领航 · AI 学业规划智能体",
+  "short_name": "智学领航",
+  "description": "基于培养方案与已修课程的 AI 学业规划：学业诊断、选课规划、多学期规划、动态时间管理与自然语言助手。",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#0b1120",
+  "theme_color": "#0b1120",
+  "categories": ["education", "productivity"],
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
