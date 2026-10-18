@@ -6,7 +6,7 @@
  *   - 文档导航（index.html）走「网络优先，失败回落缓存」。
  * 注意：仅在安全上下文（https 或 localhost）注册成功；局域网 http 下会自动跳过。
  */
-const CACHE = "zxlh-v1";
+const CACHE = "zxlh-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg", "./icon-192.png"];
 
 self.addEventListener("install", (event) => {
