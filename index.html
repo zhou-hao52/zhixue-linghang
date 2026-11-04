@@ -31,14 +31,17 @@
           var theme = light ? 'light' : 'dark'
           document.documentElement.dataset.theme = theme
           document.documentElement.style.colorScheme = theme
+          // 同步状态栏底色：否则浅色主题下移动端顶部仍是深蓝。
+          var meta = document.querySelector('meta[name="theme-color"]')
+          if (meta) meta.setAttribute('content', light ? '#f7f6f2' : '#0b1120')
         } catch (e) {}
         // 渐进增强：动效仅在具备 JS 时启用，保证无脚本环境下内容完全可读。
         document.documentElement.classList.remove('no-js')
         document.documentElement.classList.add('js')
       })()
     </script>
-    <script type="module" crossorigin src="./assets/index-_hM_Oul1.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-2Z-4rTlR.css">
+    <script type="module" crossorigin src="./assets/index-CJHox8OC.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-i-hUM0rJ.css">
   </head>
   <body>
     <div id="root"></div>

@@ -3,17 +3,22 @@
  * 目标：让"添加到主屏"后的应用可离线打开、二次启动更快。
  * 策略：
  *   - 带内容哈希的静态资源（/assets/、图标、manifest）走「缓存优先」；
- *   - 文档导航（index.html）走「网络优先，失败回落缓存」。
+ *   - 文档导航（index.html）走「网络优先，失败回落缓存」；
+ *   - 接口（/api/*）与同源代理（/__llm_proxy）**完全不拦截**。
  * 注意：仅在安全上下文（https 或 localhost）注册成功；局域网 http 下会自动跳过。
+ *
+ * 为什么必须排除 /api/*：探活与看板数据必须实时。一旦被缓存，
+ * 后端重启后探活仍命中旧的 200，页面会显示"在线"但所有请求都失败。
  */
-const CACHE = "zxlh-v2";
+const CACHE = "zxlh-v3";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg", "./icon-192.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(SHELL))
+      // 预缓存不能因单个图标 404 就整体失败，否则 SW 永远装不上。
+      .then((cache) => Promise.allSettled(SHELL.map((url) => cache.add(url))))
       .then(() => self.skipWaiting()),
   );
 });
@@ -40,14 +45,22 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
+  // 接口与代理一律绕过缓存，交给浏览器直连。
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/__llm_proxy")) return;
+
+  // PDF 等分段请求（Range）不缓存，否则会拿到残缺响应。
+  if (req.headers.get("range")) return;
+
   if (isStaticAsset(url.pathname)) {
     event.respondWith(
       caches.match(req).then(
         (hit) =>
           hit ||
           fetch(req).then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(req, copy));
+            if (res.ok) {
+              const copy = res.clone();
+              caches.open(CACHE).then((cache) => cache.put(req, copy));
+            }
             return res;
           }),
       ),
@@ -55,15 +68,25 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // 文档导航：网络优先，失败时回落缓存；其余请求不回落到 index.html
+  // （给脚本请求返回 HTML 会变成难以定位的语法错误）。
   event.respondWith(
     fetch(req)
       .then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((cache) => cache.put(req, copy));
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(req, copy));
+        }
         return res;
       })
-      .catch(() =>
-        caches.match(req).then((hit) => hit || caches.match("./index.html")),
-      ),
+      .catch(async () => {
+        const hit = await caches.match(req);
+        if (hit) return hit;
+        if (req.mode === "navigate") {
+          const shell = await caches.match("./index.html");
+          if (shell) return shell;
+        }
+        return Response.error();
+      }),
   );
 });
