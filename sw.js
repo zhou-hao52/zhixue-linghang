@@ -4,7 +4,7 @@
  * 策略：
  *   - 带内容哈希的静态资源（/assets/、图标、manifest）走「缓存优先」；
  *   - 文档导航（index.html）走「网络优先，失败回落缓存」；
- *   - 接口（/api/*）与同源代理（/__llm_proxy）**完全不拦截**。
+ *   - 接口（/api/*）**完全不拦截**。
  * 注意：仅在安全上下文（https 或 localhost）注册成功；局域网 http 下会自动跳过。
  *
  * 为什么必须排除 /api/*：探活与看板数据必须实时。一旦被缓存，
@@ -15,7 +15,7 @@
  * 若写成固定字符串，重新构建后本文件字节不变，浏览器就不会更新 SW，
  * 旧 index.html 与它引用的旧哈希资源会一直驻留，最终表现为白屏。
  */
-const CACHE = "zxlh-mw7xhu07";
+const CACHE = "zxlh-mwg6b6lm";
 const SHELL = ["./index.html", "./manifest.webmanifest", "./favicon.svg", "./icon-192.png"];
 
 self.addEventListener("install", (event) => {
@@ -50,9 +50,9 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // 接口与代理一律绕过缓存，交给浏览器直连。
+  // 接口一律绕过缓存，交给浏览器直连。
   // 用 includes 而不是 startsWith：部署到子路径时 URL 前缀会变。
-  if (url.pathname.includes("/api/") || url.pathname.includes("/__llm_proxy")) return;
+  if (url.pathname.includes("/api/")) return;
 
   // PDF 等分段请求（Range）不缓存，否则会拿到残缺响应。
   if (req.headers.get("range")) return;
