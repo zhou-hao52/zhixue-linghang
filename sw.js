@@ -15,7 +15,7 @@
  * 若写成固定字符串，重新构建后本文件字节不变，浏览器就不会更新 SW，
  * 旧 index.html 与它引用的旧哈希资源会一直驻留，最终表现为白屏。
  */
-const CACHE = "zxlh-mwg6b6lm";
+const CACHE = "zxlh-mwg93wk2";
 const SHELL = ["./index.html", "./manifest.webmanifest", "./favicon.svg", "./icon-192.png"];
 
 self.addEventListener("install", (event) => {
